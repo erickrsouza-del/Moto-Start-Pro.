@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual de Instalação: Moto Start ESP32</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        h1, h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .warning { background: #ff7675; color: white; padding: 15px; border-radius: 10px; font-weight: bold; margin: 20px 0; border-left: 10px solid #d63031; }
+        .step { margin-bottom: 40px; }
+        .diagram { background: #2d3436; color: #00d2d3; padding: 20px; border-radius: 10px; font-family: monospace; white-space: pre; overflow-x: auto; margin: 20px 0; border: 2px solid #00d2d3; }
+        .component-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        .component-list li { background: #dfe6e9; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; }
+        .connection-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .connection-table th, .connection-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        .connection-table th { background-color: #3498db; color: white; }
+        img { max-width: 100%; border-radius: 10px; }
+        .highlight { color: #e67e22; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>🚀 Guia de Partida Remota: ESP32 + Moto</h1>
+        <p>Este guia explica como conectar seu ESP32 ao sistema elétrico da motocicleta para permitir ligar a ignição e dar a partida pelo celular.</p>
+        
+        <div class="warning">
+            ⚠️ ATENÇÃO: Verifique SEMPRE se a moto está em ponto morto (neutro) antes de usar o comando. A instalação incorreta pode descarregar a bateria ou danificar o sistema elétrico.
+        </div>
+
+        <h2>📦 Materiais Necessários</h2>
+        <ul class="component-list">
+            <li>ESP32 DevKit V1</li>
+            <li>Módulo Relé 2 Canais (5V)</li>
+            <li>Conversor Buck (12V para 5V)</li>
+            <li>Fios de bitola 1.5mm²</li>
+            <li>Diodos 1N4007 (Segurança)</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>🛠️ 1. Esquema de Ligações (Diagrama)</h2>
+        <div class="diagram">
+[ BATERIA MOTO 12V ]
+       |
+       +----[ FUSÍVEL ]----> [ CONVERSOR BUCK (12V -> 5V) ] ----> [ ESP32 VIN/5V ]
+       |
+       +----[ RELÉ 1 (COM) ]          [ RELÉ 2 (COM) ]
+               |                              |
+       [ SAÍDA IGNICAO ]              [ SAÍDA PARTIDA ]
+        (Pós-Chave)                   (Botão Start)
+
+CONEXÕES ESP32:
+- Pino 23 ----> Entrada Relé 1 (Ignição)
+- Pino 22 ----> Entrada Relé 2 (Partida)
+- GND --------> GND Comum (Moto + Relé + ESP)
+        </div>
+    </div>
+
+    <div class="card step">
+        <h2>📝 2. Passo a Passo da Instalação</h2>
+        
+        <h3>Passo A: Alimentação</h3>
+        <p>Não ligue o ESP32 direto nos 12V da bateria! Use o <span class="highlight">Conversor Buck</span> regulado para 5V. Conecte a entrada do conversor na bateria (após o fusível) e a saída nos pinos 5V e GND do ESP32.</p>
+
+        <h3>Passo B: Fiação da Ignição (Relé 1)</h3>
+        <p>Identifique os fios que saem da chave de ignição. Geralmente existe um fio <span class="highlight">Vermelho (Positivo)</span> e um <span class="highlight">Laranja/Preto (Pós-Chave)</span>.</p>
+        <ul>
+            <li>Corte ou descasque o fio Pós-Chave.</li>
+            <li>Conecte o Positivo da bateria no pino <b>COM (Comum)</b> do Relé 1.</li>
+            <li>Conecte o fio que vai para o sistema da moto no pino <b>NA (Normalmente Aberto)</b> do Relé 1.</li>
+        </ul>
+
+        <h3>Passo C: Fiação da Partida (Relé 2)</h3>
+        <p>O botão de partida apenas fecha um contato. Localize os dois fios que chegam no botão de start no guidão.</p>
+        <ul>
+            <li>Leve dois fios em paralelo com os fios do botão original até o Relé 2.</li>
+            <li>Ligue um no <b>COM</b> e o outro no <b>NA</b> do Relé 2.</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>📊 Tabela de Referência de Pinos</h2>
+        <table class="connection-table">
+            <tr>
+                <th>Componente</th>
+                <th>Pino ESP32</th>
+                <th>Função</th>
+            </tr>
+            <tr>
+                <td>Módulo Relé IN1</td>
+                <td>GPIO 23</td>
+                <td>Ligar Painel / Injeção</td>
+            </tr>
+            <tr>
+                <td>Módulo Relé IN2</td>
+                <td>GPIO 22</td>
+                <td>Acionar Motor de Partida</td>
+            </tr>
+            <tr>
+                <td>LED de Status</td>
+                <td>GPIO 2 (Interno)</td>
+                <td>Indica se o sistema está ON</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>💡 Dicas de Ouro</h2>
+        <ul>
+            <li><b>Proteção Térmica:</b> Coloque o ESP32 em uma caixa estanque (à prova d'água) longe do motor.</li>
+            <li><b>Antena:</b> Se o Wi-Fi ficar fraco dentro da carenagem, posicione o ESP32 mais próximo das partes plásticas.</li>
+            <li><b>Ponto Morto:</b> Em algumas motos, você pode ligar o fio do "Sensor de Neutro" em uma entrada do ESP32 para o app avisar se é seguro ligar.</li>
+        </ul>
+    </div>
+
+</body>
+</html>
